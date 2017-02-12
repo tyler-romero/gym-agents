@@ -3,9 +3,14 @@ from gym import wrappers
 import qlearning as qla
 import collections
 
+NUM_EPISODES = 5000
+EPISODE_LENGTH = 200
+DISCOUNT = 0.9
+EXPLORATION_PROB = 0.02
+
 def CartPoleFeaturExtractor(state, action):
     #Round so that features can generalize between states slightly
-    state = tuple(map(lambda x: isinstance(x, float) and round(x, 2) or x, state))
+    state = (round(state[0],3), round(state[1],2), round(state[2],3), round(state[3],2))
 
     featureVector = []
     featureVector.append((state, 1))
@@ -17,17 +22,14 @@ def CartPoleFeaturExtractor(state, action):
     return featureVector
 
 env = gym.make('CartPole-v0')
-#env = wrappers.Monitor(env, 'C:\\Users\\Tyler\\Downloads\\tmp\\cart-pole')
+env = wrappers.Monitor(env, 'C:\\Users\\Tyler\\Downloads\\tmp\\cart-pole', force=True)
 
-ql = qla.QLearningAlgorithm(env.action_space, discount=0.9, featureExtractor=CartPoleFeaturExtractor, explorationProb=0.02)
+ql = qla.QLearningAlgorithm(env.action_space, DISCOUNT, CartPoleFeaturExtractor, EXPLORATION_PROB)
 record = collections.deque(100*[0], 100)
 
-observation = env.reset()
-reward = 0
-done = False
-for i_episode in range(1000):
+for i_episode in range(NUM_EPISODES):
     observation = env.reset()
-    for t in range(200):
+    for t in range(EPISODE_LENGTH):
         env.render()
 
         # Your Code Here #
@@ -38,13 +40,15 @@ for i_episode in range(1000):
         observation, reward, done, info = env.step(action)
 
          # Your Code Here #
-        true_reward = -1 if done is True and t < 199 else 0 # Negative reward if agent fails, zero reward else
+        true_reward = -1 if done is True and t < EPISODE_LENGTH-1 else 0 # Negative reward if agent fails
         ql.incorporateFeedback(tuple(oldObs), action, true_reward, tuple(observation))
         # End Your Code #
 
         if done:    #Print relevant info and start new episode
             record.appendleft(t+1)
-            print "Episode finished after {} timesteps".format(t+1)
+            print "Episode ", i_episode+1, " finished after {} timesteps".format(t+1)
             if i_episode % 10 is 0:
                 print "\tRolling Ave: ", float(sum(record)) / max(len(record), 1)
             break
+
+env.close()

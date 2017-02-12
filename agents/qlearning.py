@@ -4,13 +4,14 @@ import math
 from rla import RLAlgorithm
 
 class QLearningAlgorithm(RLAlgorithm):
-    def __init__(self, possible_actions, discount, featureExtractor, explorationProb=0.2):
+    def __init__(self, possible_actions, discount, featureExtractor, explorationProb=0.2, stepSizeCoef=0.25):
         self.possible_actions = possible_actions
         self.discount = discount
         self.featureExtractor = featureExtractor
         self.explorationProb = explorationProb
         self.weights = collections.defaultdict(lambda: random.uniform(-0.05,0.05))
         self.numIters = 0
+        self.stepSizeCoef = stepSizeCoef
 
     # Return the Q function associated with the weights and features
     def getQ(self, state, action):
@@ -20,8 +21,7 @@ class QLearningAlgorithm(RLAlgorithm):
         return score
 
     # This algorithm will produce an action given a state.
-    # Here we use the epsilon-greedy algorithm: with probability
-    # |explorationProb|, take a random action.
+    # Here we use the epsilon-greedy algorithm: with probability |explorationProb|, take a random action.
     def getAction(self, state):
         self.numIters += 1
         if random.random() < self.explorationProb:
@@ -31,7 +31,7 @@ class QLearningAlgorithm(RLAlgorithm):
 
     # Call this function to get the step size to update the weights.
     def getStepSize(self):
-        return 1.0 / math.sqrt(math.sqrt(self.numIters))
+        return 1.0 / (self.numIters**self.stepSizeCoef)
 
     # We will call this function with (s, a, r, s'), which you should use to update |weights|.
     # Note that if s is a terminal state, then s' will be None.  Remember to check for this.

@@ -22,7 +22,7 @@ def CartPoleFeaturExtractor(state, action):
     return featureVector
 
 env = gym.make('CartPole-v0')
-env = wrappers.Monitor(env, 'C:\\Users\\Tyler\\Downloads\\tmp\\cart-pole', force=True)
+env = wrappers.Monitor(env, '/tmp/QLearning-Results', force=True)
 
 ql = qla.QLearningAlgorithm(env.action_space, DISCOUNT, CartPoleFeaturExtractor, EXPLORATION_PROB)
 record = collections.deque(100*[0], 100)
